@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <springProperty name="ROOT_LOG_LEVEL"
+                    source="logging.level.root"
+                    defaultValue="INFO"/>
+    <property name="LOG_PATH" value="./logs"/>
+    <property name="LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{50} - %msg%n"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>${LOG_PATH}/demo.log</file>
+        <append>true</append>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="ACCESS" class="ch.qos.logback.core.FileAppender">
+        <file>${LOG_PATH}/search-access.log</file>
+        <append>true</append>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>%msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!--独立级别，即使level="DEBUG"但root level=info,也可以追加-->
+    <logger name="SEARCH_ACCESS" level="DEBUG" additivity="true"><!--additivity：是否追加到root中的appender下-->
+        <!--关联appender name="ACCESS"-->
+        <appender-ref ref="ACCESS"/>
+    </logger>
+
+    <root level="${ROOT_LOG_LEVEL}">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+</configuration>

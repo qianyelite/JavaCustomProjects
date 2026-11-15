@@ -15,18 +15,44 @@
         </encoder>
     </appender>
 
-    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>${LOG_PATH}/demo.log</file>
+    <!--滚动日志-->
+    <!--
+      总结：
+      - fileNamePattern
+           %d{yyyy-MM-dd}：按天划分滚动周期 （按照当天记录日志）
+           %i：同一天内因大小滚动产生的序号 （如果当天的日志超过100k，就会归档-使用i,  11-15.0.log,11-15.1.log）
+      - maxHistory
+           7: 每7天一个循环，超过7天的归档日志会被识别为可清除日志
+      - totalSizeCap
+           10MB： 归档日志总和(不包含当前日志search-access.log)不超过10MB,超过会优先清除更旧的日志
+      - maxHistory和totalSizeCap同时满足，优先maxHistory.  logback启动时，会根据设置自动去删除。
+    -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/demo.log</file><!--当前持续写入的文件，名称保持固定-->
         <append>true</append>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!--归档文件的路径和名称-->
+            <fileNamePattern>${LOG_PATH}/archive/demo.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>100KB</maxFileSize><!--触发大小滚动的阈值-->
+            <maxHistory>7</maxHistory><!--保留 7 个历史周期；当前周期按天，所以对应 7 天的历史归档-->
+            <totalSizeCap>10MB</totalSizeCap><!--对该策略管理的归档文件设置总容量限制-->
+        </rollingPolicy>
         <encoder>
             <charset>UTF-8</charset>
             <pattern>${LOG_PATTERN}</pattern>
         </encoder>
     </appender>
 
-    <appender name="ACCESS" class="ch.qos.logback.core.FileAppender">
+    <!--滚动日志-->
+    <appender name="ACCESS" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_PATH}/search-access.log</file>
         <append>true</append>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/archive/search-access.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>100KB</maxFileSize>
+            <maxHistory>7</maxHistory>
+            <totalSizeCap>10MB</totalSizeCap>
+        </rollingPolicy>
         <encoder>
             <charset>UTF-8</charset>
             <pattern>%msg%n</pattern>
@@ -34,7 +60,7 @@
     </appender>
 
     <!--独立级别，即使level="DEBUG"但root level=info,也可以追加-->
-    <logger name="SEARCH_ACCESS" level="DEBUG" additivity="true"><!--additivity：是否追加到root中的appender下-->
+    <logger name="SEARCH_ACCESS" level="DEBUG" additivity="false"><!--additivity：是否追加到root中的appender下-->
         <!--关联appender name="ACCESS"-->
         <appender-ref ref="ACCESS"/>
     </logger>

@@ -37,6 +37,14 @@ public class LogDemoRunner implements CommandLineRunner {
                     "demo-002", keyword, 0);
         }
 
+        // 仅用于观察大小滚动，验证完成后删除这段循环。
+        String padding = "x".repeat(200);
+        for (int i = 0; i < 3000; i++) {
+            logger.info("滚动练习 index={} padding={}", i, padding);
+            accessLogger.info("requestId=roll-{} keyword={} status=SUCCESS padding={}",
+                    i, keyword, padding);
+        }
+
         logger.info("日志练习结束");
     }
 }
