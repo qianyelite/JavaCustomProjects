@@ -37,6 +37,6 @@ mvnw
 mvnw.cmd
 .mvn
 .gitattributes
-*.log
+logs/
 
 
