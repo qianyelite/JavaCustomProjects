@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <springProperty name="ROOT_LOG_LEVEL"
+                    source="logging.level.root"
+                    defaultValue="INFO"/>
+    <property name="LOG_PATH" value="./logs"/>
+    <property name="LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{50} - %msg%n"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!--滚动日志-->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/demo.log</file><!--当前持续写入的文件，名称保持固定-->
+        <append>true</append>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!--归档文件的路径和名称-->
+            <fileNamePattern>${LOG_PATH}/archive/demo.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>100KB</maxFileSize><!--触发大小滚动的阈值-->
+            <maxHistory>7</maxHistory><!--保留 7 个历史周期；当前周期按天，所以对应 7 天的历史归档-->
+            <totalSizeCap>10MB</totalSizeCap><!--对该策略管理的归档文件设置总容量限制-->
+        </rollingPolicy>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+    <!--滚动日志-->
+    <appender name="ACCESS" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/search-access.log</file>
+        <append>true</append>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/archive/search-access.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>100KB</maxFileSize>
+            <maxHistory>7</maxHistory>
+            <totalSizeCap>10MB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>%msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!--普通文件异步-->
+    <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <!--按事件条数计算的队列容量-->
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <neverBlock>false</neverBlock>
+        <includeCallerData>false</includeCallerData>
+        <maxFlushTime>5000</maxFlushTime>
+        <appender-ref ref="FILE"/>
+    </appender>
+
+    <!--异步日志-->
+    <appender name="ASYNC_ACCESS" class="ch.qos.logback.classic.AsyncAppender">
+        <!--按事件条数计算的队列容量。默认值：256-->
+        <queueSize>512</queueSize>
+        <!--队列剩余槽位低于该值时，允许提前丢弃 INFO 及更低级别，默认值：queueSize/5-->
+        <!--0，关闭此提前丢弃机制-->
+        <discardingThreshold>0</discardingThreshold>
+        <!--队列满时是否避免等待--><!--默认值：false，等待空位-->
+        <neverBlock>false</neverBlock>
+        <!--是否在调用线程采集调用位置，供类名、方法、行号等转换符使用，默认值：false-->
+        <includeCallerData>false</includeCallerData>
+        <!--输出器停止时，等待工作线程完成剩余输出的最长时间，单位毫秒，默认值：1000-->
+        <maxFlushTime>5000</maxFlushTime>
+        <!--连接一个下游输出器-->
+        <appender-ref ref="ACCESS"/>
+    </appender>
+
+    <!--独立级别，即使level="DEBUG"但root level=info,也可以追加-->
+    <logger name="SEARCH_ACCESS" level="DEBUG" additivity="false"><!--additivity：是否追加到root中的appender下-->
+        <appender-ref ref="ASYNC_ACCESS"/>
+    </logger>
+
+    <root level="${ROOT_LOG_LEVEL}">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="ASYNC"/>
+    </root>
+
+</configuration>

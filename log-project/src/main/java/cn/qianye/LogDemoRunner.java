@@ -2,6 +2,7 @@ package cn.qianye;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -13,30 +14,30 @@ public class LogDemoRunner implements CommandLineRunner {
     //Spring Boot 会调用已注册 Runner 的 run()
     @Override
     public void run(String... args) throws Exception {
-        String keyword = "周杰伦";
-        String requestId = "demo-001";
+        simulateSearch("demo-001", "周杰伦", false);
+        simulateSearch("demo-002", "周杰伦", true);
+        logger.info("日志练习结束，当前 requestId={}", MDC.get("requestId"));
+    }
 
-        System.out.println("println：开始搜索，关键词：" + keyword);
-
-        logger.debug("调试日志：查询参数 keyword={}", keyword);
-        logger.info("开始搜索，requestId={}，keyword={}", requestId, keyword);
-
-        // 本阶段使用固定结果模拟搜索，不访问外部服务。
-        int resultCount = 10;
-        accessLogger.debug("requestId={} keyword={} resultCount={} status=SUCCESS",
-                requestId, keyword, resultCount);
-
-        logger.warn("警告日志：这是一次模拟警告");
-
+    /** 执行一次独立模拟请求，并在结束时清理本次设置的上下文。 */
+    private void simulateSearch(String requestId, String keyword, boolean fail) {
+        MDC.put("requestId", requestId);
         try {
-            throw new IllegalStateException("模拟失败");
-        } catch (IllegalStateException e) {
-            //最后的 e 是异常对象，不需要占位符。 SLF4J 会将它识别为异常，额外打印异常堆栈
-            logger.error("搜索失败，requestId={}，keyword={}", requestId, keyword, e);
-            accessLogger.debug("requestId={} keyword={} resultCount={} status=FAIL",
-                    "demo-002", keyword, 0);
-        }
+            logger.info("开始搜索，keyword={}", keyword);
+            logger.debug("查询参数 fail={}", fail);
 
-        logger.info("日志练习结束");
+            if (fail) {
+                throw new IllegalStateException("模拟搜索失败");
+            }
+
+            int resultCount = 10;
+            logger.info("搜索完成，resultCount={}", resultCount);
+            accessLogger.info("keyword={} resultCount={} status=SUCCESS", keyword, resultCount);
+        } catch (IllegalStateException e) {
+            logger.error("搜索失败，keyword={}", keyword, e);
+            accessLogger.info("keyword={} resultCount=0 status=FAIL", keyword);
+        } finally {
+            MDC.remove("requestId");
+        }
     }
 }

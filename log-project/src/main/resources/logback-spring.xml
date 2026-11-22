@@ -5,8 +5,9 @@
                     source="logging.level.root"
                     defaultValue="INFO"/>
     <property name="LOG_PATH" value="./logs"/>
+    <!--包含requestId-->
     <property name="LOG_PATTERN"
-              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{50} - %msg%n"/>
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] [requestId=%X{requestId:-none}] %logger{50} - %msg%n"/>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -43,7 +44,8 @@
         </rollingPolicy>
         <encoder>
             <charset>UTF-8</charset>
-            <pattern>%msg%n</pattern>
+            <!--`%X{requestId}` 从事件的 MDC 中读取值, `:-none` 表示不存在时输出 none-->
+            <pattern>requestId=%X{requestId:-none} %msg%n</pattern>
         </encoder>
     </appender>
 
