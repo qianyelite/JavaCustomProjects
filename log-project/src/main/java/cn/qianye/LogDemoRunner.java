@@ -37,14 +37,28 @@ public class LogDemoRunner implements CommandLineRunner {
                     "demo-002", keyword, 0);
         }
 
-        // 仅用于观察大小滚动，验证完成后删除这段循环。
-        String padding = "x".repeat(200);
-        for (int i = 0; i < 3000; i++) {
-            logger.info("滚动练习 index={} padding={}", i, padding);
-            accessLogger.info("requestId=roll-{} keyword={} status=SUCCESS padding={}",
-                    i, keyword, padding);
-        }
-
         logger.info("日志练习结束");
+    }
+
+    /** 仅用于本地队列实验，完成后删除。 */
+    public static class SlowAccessAppender
+            extends ch.qos.logback.core.FileAppender<ch.qos.logback.classic.spi.ILoggingEvent> {
+        @Override
+        protected void append(ch.qos.logback.classic.spi.ILoggingEvent event) {
+            long deadline = System.nanoTime() + 10_000_000;//方便阅读
+            boolean interrupted = false;
+            long remaining;
+            while ((remaining = deadline - System.nanoTime()) > 0) {
+                try {
+                    java.util.concurrent.TimeUnit.NANOSECONDS.sleep(remaining);
+                } catch (InterruptedException e) {//避免外部程序执行打断该线程代码
+                    interrupted = true;
+                }
+            }
+            if (interrupted) {
+                Thread.currentThread().interrupt();
+            }
+            super.append(event);
+        }
     }
 }
