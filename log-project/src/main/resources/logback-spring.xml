@@ -4,7 +4,7 @@
     <springProperty name="ROOT_LOG_LEVEL"
                     source="logging.level.root"
                     defaultValue="INFO"/>
-    <property name="LOG_PATH" value="./logs"/>
+    <springProperty name="LOG_PATH" source="demo.logging.path" defaultValue="./logs/default"/>
     <!--包含requestId-->
     <property name="LOG_PATTERN"
               value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] [requestId=%X{requestId:-none}] %logger{50} - %msg%n"/>
@@ -82,9 +82,17 @@
         <appender-ref ref="ASYNC_ACCESS"/>
     </logger>
 
-    <root level="${ROOT_LOG_LEVEL}">
-        <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="ASYNC"/>
-    </root>
+    <springProfile name="!prod">
+        <root level="${ROOT_LOG_LEVEL}">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="ASYNC"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="prod">
+        <root level="${ROOT_LOG_LEVEL}">
+            <appender-ref ref="ASYNC"/>
+        </root>
+    </springProfile>
 
 </configuration>

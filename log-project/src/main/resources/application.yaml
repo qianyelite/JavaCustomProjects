@@ -1,7 +1,41 @@
 spring:
   application:
     name: log-project
+  profiles:
+    default: prod
 
 logging:
   level:
-    root: info
+    root: INFO
+
+demo:
+  logging:
+    path: ./logs/default
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+logging:
+  level:
+    cn.qianye: DEBUG
+
+demo:
+  logging:
+    path: ./logs/dev
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+logging:
+  level:
+    cn.qianye: INFO
+
+demo:
+  logging:
+    path: ./logs/prod
